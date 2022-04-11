@@ -7,10 +7,14 @@ export const PROPERTIES = {
   texturesQuality: "medium"
 }
 export const MATERIALS = {
+  "backdrop.mat": {
+    "type": "MeshPhysicalMaterial",
+    "color": new THREE.Color("rgb(255,255,255)"),
+  },
   "lego.mat": {
-    "type": "MeshBasicMaterial",
+    "type": "MeshPhysicalMaterial",
     "color": new THREE.Color("rgb(255,255,255)"),
     "map": "Bandit Texture_Low Poly.png",
-    "flipY": true,
+    "flipY": false,
   },
 }

@@ -7,9 +7,23 @@ import * as SCENE_PROPERTIES from './sceneProperties.js'
 export function loadStage( sceneName ) {
   switch (sceneName) {
     case 'main':
-      const directionalLight = new THREE.DirectionalLight( 0xffffff, 1 )
+      const directionalLight = new THREE.DirectionalLight( 0xffffff, 0.2 )
       directionalLight.position.set(5, 6, 4)
       STATE.WEBGL.scene.add( directionalLight )
+
+      const spotLight = new THREE.SpotLight( 0xf7dd94, 1 )
+      spotLight.position.set( 1, 1, 1 )
+      spotLight.angle = Math.PI / 4
+      spotLight.penumbra = 1
+      spotLight.decay = 1
+      spotLight.distance = 10
+      spotLight.castShadow = true
+      spotLight.shadow.mapSize.width = 512
+      spotLight.shadow.mapSize.height = 512
+      spotLight.shadow.camera.near = 1
+      spotLight.shadow.camera.far = 200
+      spotLight.shadow.focus = 1
+      STATE.WEBGL.scene.add( spotLight )
 
       const SCENE_MESH = ASSETS.MAIN.MODEL_FILES.find( obj => { return obj.name === "scene" } )
       const SCENE_OBJECT = new StageObject({
@@ -18,6 +32,12 @@ export function loadStage( sceneName ) {
         objectName: 'scene',
         definition: SCENE_PROPERTIES,
       })
+      
+      SCENE_OBJECT.clone.traverse(child => {
+        if(child.name == 'Backdrop') child.receiveShadow = true
+        if(child.name == 'Lego') child.castShadow = true
+      })
+
       STATE.WEBGL.scene.add(SCENE_OBJECT.clone)
       break
   }

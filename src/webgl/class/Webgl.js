@@ -51,10 +51,10 @@ export class Webgl{
     this.controls.enableDamping = true
     this.controls.minDistance = 1
     this.controls.maxDistance = 50
-    this.controls.minAzimuthAngle = THREE.MathUtils.degToRad(-20)
-    this.controls.maxAzimuthAngle = THREE.MathUtils.degToRad(50)
-    this.controls.minPolarAngle = THREE.MathUtils.degToRad(70)
-    this.controls.maxPolarAngle = THREE.MathUtils.degToRad(90)
+    this.controls.minAzimuthAngle = THREE.MathUtils.degToRad(-65)
+    this.controls.maxAzimuthAngle = THREE.MathUtils.degToRad(65)
+    this.controls.minPolarAngle = THREE.MathUtils.degToRad(60)
+    this.controls.maxPolarAngle = THREE.MathUtils.degToRad(80)
 
     //listeners
 	  window.addEventListener('resize', this.onWindowResize.bind(this), false)

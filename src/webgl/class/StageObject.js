@@ -107,6 +107,8 @@ export class StageObject{
                 mapText.mapping = THREE.EquirectangularReflectionMapping
                 cloneMat[map] = mapText
 
+                if(this.definition.MATERIALS[child.material.name].flipY  != undefined) mapText.flipY = this.definition.MATERIALS[child.material.name].flipY
+
                 //keep texture in the class memory
                 this.loadedTextures[map][key] = mapText
               }

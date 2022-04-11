@@ -50,6 +50,7 @@ window._WEBGL = (function() {
         if ( event.key == 'i' ){
           console.table( STATE.WEBGL.renderer.info.memory )
           console.table( STATE.WEBGL.renderer.info.render )
+          console.log( STATE.WEBGL.scene )
         }
         if ( event.key == 'r' ) STATE.ENABLE_RENDERING ? toggleRendering( false ) : toggleRendering( true )
       }, false)
