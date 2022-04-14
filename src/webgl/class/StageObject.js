@@ -12,14 +12,15 @@ export class StageObject{
 
     this.loadedTextures = {
       map: {},
-      envMap: {},
-      normalMap: {},
-      bumpMap: {},
+      emissiveMap: {},
       alphaMap: {},
       metalnessMap: {},
       specularMap: {},
+      normalMap: {},
+      bumpMap: {},
       displacementMap: {},
-      emissiveMap: {},
+      envMap: {},
+      lightMap: {},
     }
 
     this.loadingManagerLoaded = false
@@ -27,23 +28,18 @@ export class StageObject{
     this.needToBeUpdated = []
 
     this.LOADING_MANAGER = new THREE.LoadingManager()
-    this.LOADING_MANAGER.onProgress = function ( url, itemsLoaded, itemsTotal ) {
-      if(STATE.WEBGL.isDebug)
-        console.log( `%cTextures loading: ${url} (${itemsLoaded}/${itemsTotal})`,'color:#787878;')
-    }
-    this.LOADING_MANAGER.onError = function ( url ) {console.log( 'There was an error loading ' + url )}
+    this.LOADING_MANAGER.onProgress = ( url, itemsLoaded, itemsTotal ) => { if(STATE.WEBGL.isDebug) console.log( `%cTextures loading: ${url} (${itemsLoaded}/${itemsTotal})`,'color:#787878;') }
+    this.LOADING_MANAGER.onError = ( url ) => {console.log( 'There was an error loading ' + url )}
 
     this.LOADING_MANAGER.onLoad = () => {
       this.loadingManagerLoaded = true
-      if (!this.pendingTexturesUpdated) {
-        this.updatePendingTexures()
-      }
+      if (!this.pendingTexturesUpdated) this.updatePendingTexures()
     }
 
     this.textureLoader = new THREE.TextureLoader(this.LOADING_MANAGER)
 
     this.updateProperties()
-    this.updateMaterial(this.clone, this.name, true)
+    this.updateMaterial(this.clone, true)
   }
 
   updatePendingTexures(){
@@ -66,95 +62,45 @@ export class StageObject{
     this.clone.rotation.copy( this.definition.PROPERTIES.rotation )
   }
 
-  async updateMaterial(object, objectName, loadTextures = false){
+  async updateMaterial(object, loadTextures = false){
     this.pendingTexturesUpdated = false
 
     object.traverse( async child => {
       if( child.material ){
         if (!this.definition.MATERIALS[child.material.name]) return
 
-        let cloneMat = child.material.clone()
+        let cloneMat = this.definition.MATERIALS[child.material.name].type
+        cloneMat.name = child.material.name // copy material name from the orginal material
 
-        if (this.definition.MATERIALS[cloneMat.name].type == 'MeshPhongMaterial')
-          cloneMat = new THREE.MeshPhongMaterial()
-        else if (this.definition.MATERIALS[cloneMat.name].type == 'MeshBasicMaterial')
-          cloneMat = new THREE.MeshBasicMaterial()
-        else if (this.definition.MATERIALS[cloneMat.name].type == 'MeshLambertMaterial')
-          cloneMat = new THREE.MeshLambertMaterial()
-        else if (this.definition.MATERIALS[cloneMat.name].type == 'MeshPhysicalMaterial')
-          cloneMat = new THREE.MeshPhysicalMaterial()
-        else if (this.definition.MATERIALS[cloneMat.name].type == 'MeshStandardMaterial')
-          cloneMat = new THREE.MeshStandardMaterial()
-
-        //common values
-        cloneMat.name = child.material.name
-
-        //textures
-        const MAPS = ['map', 'specularMap', 'alphaMap', 'displacementMap', 'normalMap', 'bumpMap', 'emissiveMap', 'envMap']
+        // textures
         if(loadTextures){
-          for(let map of MAPS){
-            if(this.definition.MATERIALS[cloneMat.name][map] != undefined){
-              let key = child.material.name
-              let file = this.definition.MATERIALS[cloneMat.name][map]
+          for(let mapKey in this.loadedTextures){            
+            if(this.definition.MATERIALS[cloneMat.name][mapKey] != undefined){
+              let matKey = child.material.name
+              let file = this.definition.MATERIALS[cloneMat.name][mapKey]
 
-              if (this.loadedTextures[map][key]) {
-                //get texture from class memory
-                cloneMat[map] = this.loadedTextures[map][key]
+              if (this.loadedTextures[mapKey][matKey]) {
+                cloneMat[mapKey] = this.loadedTextures[mapKey][matKey] // get texture from class memory
               }else{
                 this.loadingManagerLoaded = false
                 let mapText = this.textureLoader.load( this.texturesPath + file )
                 mapText.encoding = THREE.LinearEncoding
                 mapText.mapping = THREE.EquirectangularReflectionMapping
-                cloneMat[map] = mapText
+                cloneMat[mapKey] = mapText
 
                 if(this.definition.MATERIALS[child.material.name].flipY  != undefined) mapText.flipY = this.definition.MATERIALS[child.material.name].flipY
 
-                //keep texture in the class memory
-                this.loadedTextures[map][key] = mapText
+                this.loadedTextures[mapKey][matKey] = mapText // keep texture in the class memory
               }
             }
           }
         }
 
-        const CHANNELS = [
-          'transparent',
-          'opacity',
-          'shininess',
-          'aoMapIntensity',
-          'roughness',
-          'metalness',
-          'clearcoat',
-          'clearcoatRoughness',
-          'envMapIntensity',
-          'reflectivity',
-          'refractionRatio',
-          'transmission',
-          'thickness',
-          'attenuationDistance',
-          'attenuationColor',
-          'blending',
-          'bumpScale',
-          'emissiveIntensity',
-          'depthTest',
-          'depthWrite',
-          'alphaTest',
-          'bumpScale'
-        ]
-
-        //colors channels
-        if(this.definition.MATERIALS[cloneMat.name].color != undefined)
-          cloneMat.color = new THREE.Color(this.definition.MATERIALS[cloneMat.name].color)
-        if(this.definition.MATERIALS[cloneMat.name].specular != undefined)
-          cloneMat.specular = new THREE.Color(this.definition.MATERIALS[cloneMat.name].specular)
-        if(this.definition.MATERIALS[cloneMat.name].emissive != undefined)
-          cloneMat.emissive = new THREE.Color(this.definition.MATERIALS[cloneMat.name].emissive)
-
-        for (let channel of CHANNELS) {
-          if(this.definition.MATERIALS[cloneMat.name][channel] != undefined)
-            cloneMat[channel] = this.definition.MATERIALS[cloneMat.name][channel]
-        }
-
-        this.needToBeUpdated.push({mesh: child, clonedMaterial: cloneMat})
+        for (let key in cloneMat) 
+          if(!key.includes('map') && !key.includes('type') && this.definition.MATERIALS[cloneMat.name][key] != undefined)
+            cloneMat[key] = this.definition.MATERIALS[cloneMat.name][key]
+        
+        this.needToBeUpdated.push( {mesh: child, clonedMaterial: cloneMat} )
 
         if(STATE.WEBGL.isDebug) if(cloneMat.name == "lego.mat") console.log(cloneMat)
       }

@@ -67,7 +67,7 @@ window._WEBGL = (function() {
    */
   function loadAssets(_sceneName, _callback){    
     const LOADING_MANAGER = new THREE.LoadingManager()
-    LOADING_MANAGER.onProgress = function ( url, itemsLoaded, itemsTotal ) { if(STATE.WEBGL.isDebug) console.log( `%cLoading file: ${url} (${itemsLoaded}/${itemsTotal})`,'color:#787878;') }
+    LOADING_MANAGER.onProgress = ( url, itemsLoaded, itemsTotal ) => { if(STATE.WEBGL.isDebug) console.log( `%cLoading file: ${url} (${itemsLoaded}/${itemsTotal})`,'color:#787878;') }
     LOADING_MANAGER.onError = url => console.log('There was an error loading '+url)
 
     switch (_sceneName) {
